@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -112,25 +106,31 @@ supplier_options = list(label_encoder.classes_)
 supplier1_selected = st.selectbox("Supplier 1", supplier_options, index=0)
 supplier2_selected = st.selectbox("Supplier 2", supplier_options, index=1)
 
+percentage_supplier1 = st.slider("Persentase Supplier 1", 0, 100, 50)
+percentage_supplier2 = 100 - percentage_supplier1
+
 supplier1_encoded = label_encoder.transform([supplier1_selected])[0]
 supplier2_encoded = label_encoder.transform([supplier2_selected])[0]
-supplier_avg = (supplier1_encoded + supplier2_encoded) / 2
+supplier_avg = (supplier1_encoded * percentage_supplier1 + supplier2_encoded * percentage_supplier2) / 100
+
+def weighted_avg(val1, val2):
+    return (val1 * percentage_supplier1 + val2 * percentage_supplier2) / 100
 
 gcv_arb_1 = st.number_input("GCV ARB UNLOADING Supplier 1", value=4200.0)
 gcv_arb_2 = st.number_input("GCV ARB UNLOADING Supplier 2", value=4200.0)
-gcv_arb_avg = (gcv_arb_1 + gcv_arb_2) / 2
+gcv_arb_avg = weighted_avg(gcv_arb_1, gcv_arb_2)
 
 tm_arb_1 = st.number_input("TM ARB UNLOADING Supplier 1", value=35.5)
 tm_arb_2 = st.number_input("TM ARB UNLOADING Supplier 2", value=35.5)
-tm_arb_avg = (tm_arb_1 + tm_arb_2) / 2
+tm_arb_avg = weighted_avg(tm_arb_1, tm_arb_2)
 
 ash_content_1 = st.number_input("Ash Content ARB UNLOADING Supplier 1", value=5.0)
 ash_content_2 = st.number_input("Ash Content ARB UNLOADING Supplier 2", value=5.0)
-ash_content_avg = (ash_content_1 + ash_content_2) / 2
+ash_content_avg = weighted_avg(ash_content_1, ash_content_2)
 
 total_sulphur_1 = st.number_input("Total Sulphur ARB UNLOADING Supplier 1", value=0.3)
 total_sulphur_2 = st.number_input("Total Sulphur ARB UNLOADING Supplier 2", value=0.3)
-total_sulphur_avg = (total_sulphur_1 + total_sulphur_2) / 2
+total_sulphur_avg = weighted_avg(total_sulphur_1, total_sulphur_2)
 
 if st.button("Prediksi"):
     input_data = np.array([[gcv_arb_avg, tm_arb_avg, ash_content_avg, total_sulphur_avg]])
@@ -139,4 +139,3 @@ if st.button("Prediksi"):
     input_final = np.hstack([[supplier_avg], input_scaled[0]])
     prediction = best_model.predict([input_final])
     st.success(f"Prediksi GCV (ARB) LAB: {prediction[0]:.2f}")
-
