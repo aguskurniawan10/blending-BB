@@ -110,18 +110,26 @@ supplier_options = list(label_encoder.classes_)
 col1, col2 = st.columns(2)
 with col1:
     supplier_1 = st.selectbox("Pilih Supplier 1", supplier_options)
-    supplier_1_percentage = st.slider("Persentase Supplier 1", 0, 100, 50)
+    supplier_1_percentage = st.slider("Persentase Supplier 1", 0, 100, 40)
 with col2:
     supplier_2 = st.selectbox("Pilih Supplier 2", supplier_options)
-    supplier_2_percentage = st.slider("Persentase Supplier 2", 0, 100, 50 - supplier_1_percentage)
-biomass_percentage = st.slider("Persentase Biomass", 0, 100, 0)
+    supplier_2_percentage = st.slider("Persentase Supplier 2", 0, 100, 40)
+biomass_percentage = st.slider("Persentase Biomass", 0, 100, 20)
 
 params = {}
-st.subheader("Masukkan Nilai Parameter")
+st.subheader("Masukkan Nilai Parameter untuk Masing-Masing Sumber")
 for label in ["GCV ARB UNLOADING", "TM ARB UNLOADING", "Ash Content ARB UNLOADING", "Total Sulphur ARB UNLOADING"]:
-    params[label] = st.number_input(label, value=0.0)
+    col1, col2 = st.columns(2)
+    with col1:
+        params[label + "_S1"] = st.number_input(f"{label} Supplier 1", value=0.0)
+    with col2:
+        params[label + "_S2"] = st.number_input(f"{label} Supplier 2", value=0.0)
+params["GCV_Biomass"] = st.number_input("GCV Biomass", value=0.0)
 
 if st.button("Prediksi"):
-    blended_value = sum(params[label] * ((supplier_1_percentage + supplier_2_percentage + biomass_percentage) / 100) for label in params)
+    blended_value = sum((params[label + "_S1"] * supplier_1_percentage + 
+                         params[label + "_S2"] * supplier_2_percentage + 
+                         params["GCV_Biomass"] * biomass_percentage) / 100 
+                        for label in ["GCV ARB UNLOADING", "TM ARB UNLOADING", "Ash Content ARB UNLOADING", "Total Sulphur ARB UNLOADING"])
     prediction = best_model.predict([[blended_value]])
     st.success(f"Prediksi GCV (ARB) LAB: {prediction[0]:.2f}")
