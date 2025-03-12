@@ -121,16 +121,14 @@ for label in ["GCV ARB UNLOADING", "TM ARB UNLOADING", "Ash Content ARB UNLOADIN
         val_1 = st.number_input(f"{label} Supplier 1", value=0.0)
     with col2:
         val_2 = st.number_input(f"{label} Supplier 2", value=0.0)
-    blended_value = (val_1 * supplier_1_percentage + val_2 * supplier_2_percentage) / max(supplier_1_percentage + supplier_2_percentage, 1)
-    data_input.append(blended_value)
+    data_input.append((val_1 * supplier_1_percentage + val_2 * supplier_2_percentage) / max(supplier_1_percentage + supplier_2_percentage, 1))
 
 gcv_biomass = st.number_input("GCV Biomass", value=0.0)
-data_input.append(gcv_biomass)
-
 data_input = np.array([data_input])
 data_input = imputer.transform(data_input)
 data_input = scaler.transform(data_input)
 
 if st.button("Prediksi"):
     prediction = best_model.predict(data_input)
-    st.success(f"Prediksi GCV (ARB) LAB: {prediction[0]:.2f}")
+    final_prediction = (prediction[0] * (supplier_1_percentage + supplier_2_percentage) + gcv_biomass * biomass_percentage) / 100
+    st.success(f"Prediksi GCV (ARB) LAB: {final_prediction:.2f}")
