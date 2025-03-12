@@ -30,7 +30,7 @@ def train_and_save_model():
     df.columns = df.columns.str.strip()
 
     required_columns = ['Suppliers', 'GCV ARB UNLOADING', 'TM ARB UNLOADING', 
-                        'Ash Content ARB UNLOADING', 'Total Sulphur ARB UNLOADING', 'GCV Biomass', 'GCV (ARB) LAB']
+                        'Ash Content ARB UNLOADING', 'Total Sulphur ARB UNLOADING', 'GCV (ARB) LAB']
     for col in required_columns:
         if col not in df.columns:
             raise ValueError(f"Kolom '{col}' tidak ditemukan dalam dataset!")
@@ -39,7 +39,7 @@ def train_and_save_model():
     df['Suppliers'] = label_encoder.fit_transform(df['Suppliers'])
 
     X = df[['Suppliers', 'GCV ARB UNLOADING', 'TM ARB UNLOADING', 
-            'Ash Content ARB UNLOADING', 'Total Sulphur ARB UNLOADING', 'GCV Biomass']]
+            'Ash Content ARB UNLOADING', 'Total Sulphur ARB UNLOADING']]
     y = df['GCV (ARB) LAB']
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -130,5 +130,6 @@ data_input = scaler.transform(data_input)
 
 if st.button("Prediksi"):
     prediction = best_model.predict(data_input)
-    final_prediction = (prediction[0] * (supplier_1_percentage + supplier_2_percentage) + gcv_biomass * biomass_percentage) / 100
+    total_percentage = supplier_1_percentage + supplier_2_percentage + biomass_percentage
+    final_prediction = (prediction[0] * (supplier_1_percentage + supplier_2_percentage) + gcv_biomass * biomass_percentage) / total_percentage
     st.success(f"Prediksi GCV (ARB) LAB: {final_prediction:.2f}")
