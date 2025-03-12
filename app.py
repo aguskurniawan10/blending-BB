@@ -38,19 +38,13 @@ def train_and_save_model():
     y = df['GCV (ARB) LAB']
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    X_train_numeric = X_train.drop(columns=['Suppliers'])
-    X_test_numeric = X_test.drop(columns=['Suppliers'])
-
     imputer = SimpleImputer(strategy='median')
-    X_train_imputed = imputer.fit_transform(X_train_numeric)
-    X_test_imputed = imputer.transform(X_test_numeric)
+    X_train_imputed = imputer.fit_transform(X_train)
+    X_test_imputed = imputer.transform(X_test)
 
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train_imputed)
     X_test_scaled = scaler.transform(X_test_imputed)
-
-    X_train_final = np.hstack([X_train[['Suppliers']].values, X_train_scaled])
-    X_test_final = np.hstack([X_test[['Suppliers']].values, X_test_scaled])
 
     models = {
         'Linear Regression': LinearRegression(),
@@ -67,8 +61,8 @@ def train_and_save_model():
     best_model_name = ""
     
     for name, model in models.items():
-        model.fit(X_train_final, y_train)
-        y_pred = model.predict(X_test_final)
+        model.fit(X_train_scaled, y_train)
+        y_pred = model.predict(X_test_scaled)
         r2 = r2_score(y_test, y_pred)
         if r2 > best_score:
             best_score = r2
@@ -82,7 +76,7 @@ def train_and_save_model():
     with open(SCALER_PATH, "wb") as file:
         pickle.dump(scaler, file)
     with open(ENCODER_PATH, "wb") as file:
-        pickle.dump({"encoder": label_encoder, "classes": label_encoder.classes_}, file)
+        pickle.dump(label_encoder, file)
     with open(BEST_MODEL_INFO_PATH, "wb") as file:
         pickle.dump({"name": best_model_name, "r2": best_score}, file)
 
@@ -96,9 +90,7 @@ with open(IMPUTER_PATH, "rb") as file:
 with open(SCALER_PATH, "rb") as file:
     scaler = pickle.load(file)
 with open(ENCODER_PATH, "rb") as file:
-    encoder_data = pickle.load(file)
-    label_encoder = encoder_data["encoder"]
-    label_encoder.classes_ = encoder_data["classes"]
+    label_encoder = pickle.load(file)
 with open(BEST_MODEL_INFO_PATH, "rb") as file:
     best_model_info = pickle.load(file)
 
@@ -116,20 +108,23 @@ with col2:
     supplier_2_percentage = st.slider("Persentase Supplier 2", 0, 100, 40)
 biomass_percentage = st.slider("Persentase Biomass", 0, 100, 20)
 
-params = {}
+data_input = []
 st.subheader("Masukkan Nilai Parameter untuk Masing-Masing Sumber")
 for label in ["GCV ARB UNLOADING", "TM ARB UNLOADING", "Ash Content ARB UNLOADING", "Total Sulphur ARB UNLOADING"]:
     col1, col2 = st.columns(2)
     with col1:
-        params[label + "_S1"] = st.number_input(f"{label} Supplier 1", value=0.0)
+        val_1 = st.number_input(f"{label} Supplier 1", value=0.0)
     with col2:
-        params[label + "_S2"] = st.number_input(f"{label} Supplier 2", value=0.0)
-params["GCV_Biomass"] = st.number_input("GCV Biomass", value=0.0)
+        val_2 = st.number_input(f"{label} Supplier 2", value=0.0)
+    blended_value = (val_1 * supplier_1_percentage + val_2 * supplier_2_percentage) / 100
+    data_input.append(blended_value)
+
+data_input.append(st.number_input("GCV Biomass", value=0.0) * biomass_percentage / 100)
+
+data_input = np.array([data_input])
+data_input = imputer.transform(data_input)
+data_input = scaler.transform(data_input)
 
 if st.button("Prediksi"):
-    blended_value = sum((params[label + "_S1"] * supplier_1_percentage + 
-                         params[label + "_S2"] * supplier_2_percentage + 
-                         params["GCV_Biomass"] * biomass_percentage) / 100 
-                        for label in ["GCV ARB UNLOADING", "TM ARB UNLOADING", "Ash Content ARB UNLOADING", "Total Sulphur ARB UNLOADING"])
-    prediction = best_model.predict([[blended_value]])
+    prediction = best_model.predict(data_input)
     st.success(f"Prediksi GCV (ARB) LAB: {prediction[0]:.2f}")
