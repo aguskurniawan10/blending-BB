@@ -115,15 +115,16 @@ biomass_percentage = st.slider("Persentase Biomass", 0, 100, 20)
 data_input = []
 st.subheader("Masukkan Nilai Parameter untuk Masing-Masing Sumber")
 for label in ["GCV ARB UNLOADING", "TM ARB UNLOADING", "Ash Content ARB UNLOADING", "Total Sulphur ARB UNLOADING"]:
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     with col1:
         val_1 = st.number_input(f"{label} Supplier 1", value=0.0)
     with col2:
         val_2 = st.number_input(f"{label} Supplier 2", value=0.0)
-    blended_value = (val_1 * supplier_1_percentage + val_2 * supplier_2_percentage) / 100
+    with col3:
+        val_3 = st.number_input(f"{label} Biomass", value=0.0)
+    total_percentage = supplier_1_percentage + supplier_2_percentage + biomass_percentage
+    blended_value = (val_1 * supplier_1_percentage + val_2 * supplier_2_percentage + val_3 * biomass_percentage) / total_percentage if total_percentage > 0 else 0
     data_input.append(blended_value)
-
-data_input.append(st.number_input("GCV Biomass", value=0.0) * biomass_percentage / 100)
 
 data_input = np.array([data_input])
 data_input = imputer.transform(data_input)
