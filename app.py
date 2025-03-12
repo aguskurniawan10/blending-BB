@@ -102,7 +102,11 @@ st.set_page_config(page_title="Prediksi GCV", layout="wide")
 st.title("🔍 Prediksi GCV (ARB) LAB")
 st.markdown(f"**🧠 Model Terbaik:** {best_model_info['name']} (R² = {best_model_info['r2']:.4f})")
 
-supplier_options = list(label_encoder.classes_)
+if isinstance(label_encoder, LabelEncoder):
+    supplier_options = list(label_encoder.classes_)
+else:
+    supplier_options = ["Supplier 1", "Supplier 2"]
+
 col1, col2 = st.columns(2)
 with col1:
     supplier_1 = st.selectbox("Pilih Supplier 1", supplier_options)
