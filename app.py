@@ -102,7 +102,7 @@ st.set_page_config(page_title="Prediksi GCV", layout="wide")
 st.title("🔍 Prediksi GCV (ARB) LAB")
 st.markdown(f"**🧠 Model Terbaik:** {best_model_info['name']} (R² = {best_model_info['r2']:.4f})")
 
-supplier_options = list(label_encoder.classes_) if isinstance(label_encoder, LabelEncoder) else ["Supplier 1", "Supplier 2"]
+supplier_options = list(label_encoder.classes_)
 
 col1, col2 = st.columns(2)
 with col1:
@@ -124,6 +124,8 @@ for label in ["GCV ARB UNLOADING", "TM ARB UNLOADING", "Ash Content ARB UNLOADIN
     data_input.append((val_1 * supplier_1_percentage + val_2 * supplier_2_percentage) / max(supplier_1_percentage + supplier_2_percentage, 1))
 
 gcv_biomass = st.number_input("GCV Biomass", value=0.0)
+supplier_encoded = label_encoder.transform([supplier_1])[0]
+data_input.insert(0, supplier_encoded)
 data_input = np.array([data_input])
 data_input = imputer.transform(data_input)
 data_input = scaler.transform(data_input)
