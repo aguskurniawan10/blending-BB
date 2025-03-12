@@ -131,7 +131,7 @@ for label in ["GCV ARB UNLOADING", "TM ARB UNLOADING", "Ash Content ARB UNLOADIN
     data_input.append(blended_value)
 
 data_input = np.array([data_input])
-data_input = imputer.transform(data_input)
+data_input = imputer.transform(pd.DataFrame(data_input, columns=["GCV ARB UNLOADING", "TM ARB UNLOADING", "Ash Content ARB UNLOADING", "Total Sulphur ARB UNLOADING"]))
 data_input = scaler.transform(data_input)
 
 if st.button("Prediksi"):
