@@ -20,6 +20,11 @@ ENCODER_PATH = "label_encoder.pkl"
 BEST_MODEL_INFO_PATH = "best_model_info.pkl"
 DATA_URL = "https://github.com/aguskurniawan10/prediksiNKLabUBPJPR/raw/main/DATA%20PREDIKSI%20NK%20LAB%202025.xlsx"
 
+# Hapus file pkl jika ada
+for file_path in [MODEL_PATH, IMPUTER_PATH, SCALER_PATH, ENCODER_PATH, BEST_MODEL_INFO_PATH]:
+    if os.path.exists(file_path):
+        os.remove(file_path)
+
 def train_and_save_model():
     df = pd.read_excel(DATA_URL)
     df.columns = df.columns.str.strip()
