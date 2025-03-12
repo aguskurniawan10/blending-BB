@@ -6,10 +6,7 @@ import pickle
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression, Ridge, Lasso
-from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
-from sklearn.svm import SVR
 from sklearn.metrics import r2_score
 
 # Path untuk model dan preprocessing tools
@@ -21,7 +18,6 @@ BEST_MODEL_INFO_PATH = "best_model_info.pkl"
 DATA_URL = "https://github.com/aguskurniawan10/prediksiNKLabUBPJPR/raw/main/DATA%20PREDIKSI%20NK%20LAB%202025.xlsx"
 
 def train_and_save_model():
-    """Melatih model dan menyimpannya menggunakan pickle."""
     df = pd.read_excel(DATA_URL)
     df.columns = df.columns.str.strip()
 
@@ -98,44 +94,36 @@ with open(ENCODER_PATH, "rb") as file:
 with open(BEST_MODEL_INFO_PATH, "rb") as file:
     best_model_info = pickle.load(file)
 
-st.title("Prediksi GCV (ARB) LAB")
-st.write(f"**Model yang digunakan:** {best_model_info['name']} dengan **R² = {best_model_info['r2']:.4f}**")
+st.set_page_config(page_title="Prediksi GCV", layout="centered")
+st.title("🔍 Prediksi GCV (ARB) LAB")
+st.markdown(f"**🧠 Model Terbaik:** {best_model_info['name']} (R² = {best_model_info['r2']:.4f})")
 
 supplier_options = list(label_encoder.classes_)
 
-supplier1_selected = st.selectbox("Supplier 1", supplier_options, index=0)
-supplier2_selected = st.selectbox("Supplier 2", supplier_options, index=1)
+supplier1_selected = st.selectbox("🏭 Supplier 1", supplier_options, index=0)
+supplier2_selected = st.selectbox("🏭 Supplier 2", supplier_options, index=1)
 
-percentage_supplier1 = st.slider("Persentase Supplier 1", 0, 100, 50)
-percentage_supplier2 = 100 - percentage_supplier1
+percentage_supplier1 = st.slider("⚖️ Persentase Supplier 1", 0, 100, 50)
+percentage_supplier2 = st.slider("⚖️ Persentase Supplier 2", 0, 100 - percentage_supplier1, 25)
+percentage_biomass = 100 - percentage_supplier1 - percentage_supplier2
 
-supplier1_encoded = label_encoder.transform([supplier1_selected])[0]
-supplier2_encoded = label_encoder.transform([supplier2_selected])[0]
-supplier_avg = (supplier1_encoded * percentage_supplier1 + supplier2_encoded * percentage_supplier2) / 100
+gcv_biomass = st.number_input("🌿 GCV Biomass", value=3500.0)
 
-def weighted_avg(val1, val2):
-    return (val1 * percentage_supplier1 + val2 * percentage_supplier2) / 100
+def weighted_avg(val1, val2, val3):
+    return (val1 * percentage_supplier1 + val2 * percentage_supplier2 + val3 * percentage_biomass) / 100
 
-gcv_arb_1 = st.number_input("GCV ARB UNLOADING Supplier 1", value=4200.0)
-gcv_arb_2 = st.number_input("GCV ARB UNLOADING Supplier 2", value=4200.0)
-gcv_arb_avg = weighted_avg(gcv_arb_1, gcv_arb_2)
+gcv_arb_1 = st.number_input("🔥 GCV ARB Supplier 1", value=4200.0)
+gcv_arb_2 = st.number_input("🔥 GCV ARB Supplier 2", value=4200.0)
+gcv_arb_avg = weighted_avg(gcv_arb_1, gcv_arb_2, gcv_biomass)
 
-tm_arb_1 = st.number_input("TM ARB UNLOADING Supplier 1", value=35.5)
-tm_arb_2 = st.number_input("TM ARB UNLOADING Supplier 2", value=35.5)
-tm_arb_avg = weighted_avg(tm_arb_1, tm_arb_2)
+tm_arb_1 = st.number_input("💧 TM ARB Supplier 1", value=35.5)
+tm_arb_2 = st.number_input("💧 TM ARB Supplier 2", value=35.5)
+tm_arb_avg = weighted_avg(tm_arb_1, tm_arb_2, 20.0)
 
-ash_content_1 = st.number_input("Ash Content ARB UNLOADING Supplier 1", value=5.0)
-ash_content_2 = st.number_input("Ash Content ARB UNLOADING Supplier 2", value=5.0)
-ash_content_avg = weighted_avg(ash_content_1, ash_content_2)
-
-total_sulphur_1 = st.number_input("Total Sulphur ARB UNLOADING Supplier 1", value=0.3)
-total_sulphur_2 = st.number_input("Total Sulphur ARB UNLOADING Supplier 2", value=0.3)
-total_sulphur_avg = weighted_avg(total_sulphur_1, total_sulphur_2)
-
-if st.button("Prediksi"):
-    input_data = np.array([[gcv_arb_avg, tm_arb_avg, ash_content_avg, total_sulphur_avg]])
+if st.button("🚀 Prediksi"):
+    input_data = np.array([[gcv_arb_avg, tm_arb_avg]])
     input_imputed = imputer.transform(input_data)
     input_scaled = scaler.transform(input_imputed)
-    input_final = np.hstack([[supplier_avg], input_scaled[0]])
+    input_final = np.hstack([[0], input_scaled[0]])
     prediction = best_model.predict([input_final])
-    st.success(f"Prediksi GCV (ARB) LAB: {prediction[0]:.2f}")
+    st.success(f"🔮 Prediksi GCV (ARB) LAB: {prediction[0]:.2f}")
