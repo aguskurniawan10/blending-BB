@@ -30,7 +30,7 @@ def train_and_save_model():
     df.columns = df.columns.str.strip()
 
     required_columns = ['Suppliers', 'GCV ARB UNLOADING', 'TM ARB UNLOADING', 
-                        'Ash Content ARB UNLOADING', 'Total Sulphur ARB UNLOADING', 'GCV (ARB) LAB']
+                        'Ash Content ARB UNLOADING', 'Total Sulphur ARB UNLOADING', 'GCV Biomass', 'GCV (ARB) LAB']
     for col in required_columns:
         if col not in df.columns:
             raise ValueError(f"Kolom '{col}' tidak ditemukan dalam dataset!")
@@ -39,7 +39,7 @@ def train_and_save_model():
     df['Suppliers'] = label_encoder.fit_transform(df['Suppliers'])
 
     X = df[['Suppliers', 'GCV ARB UNLOADING', 'TM ARB UNLOADING', 
-            'Ash Content ARB UNLOADING', 'Total Sulphur ARB UNLOADING']]
+            'Ash Content ARB UNLOADING', 'Total Sulphur ARB UNLOADING', 'GCV Biomass']]
     y = df['GCV (ARB) LAB']
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -123,6 +123,9 @@ for label in ["GCV ARB UNLOADING", "TM ARB UNLOADING", "Ash Content ARB UNLOADIN
         val_2 = st.number_input(f"{label} Supplier 2", value=0.0)
     blended_value = (val_1 * supplier_1_percentage + val_2 * supplier_2_percentage) / max(supplier_1_percentage + supplier_2_percentage, 1)
     data_input.append(blended_value)
+
+gcv_biomass = st.number_input("GCV Biomass", value=0.0)
+data_input.append(gcv_biomass)
 
 data_input = np.array([data_input])
 data_input = imputer.transform(data_input)
